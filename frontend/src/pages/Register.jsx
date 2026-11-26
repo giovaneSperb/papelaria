@@ -17,7 +17,7 @@ export default function Register() {
     setBusy(true);
     try {
       await register(form.name, form.email, form.password);
-      navigate("/");
+      navigate("/venda");
     } catch (err) {
       setError(err.message);
     } finally {

@@ -31,6 +31,24 @@ Abra http://localhost:5173 — a documentação da API fica em http://localhost:
 | POST   | `/api/auth/register` | cria conta (se `ALLOW_SIGNUP=true`) |
 | POST   | `/api/auth/login`    | retorna `access_token` + usuário   |
 | GET    | `/api/auth/me`       | usuário logado (Bearer)            |
+| GET    | `/api/products`      | lista/busca (`?q=`)                |
+| GET    | `/api/products/barcode/{codigo}` | produto do estoque pelo código |
+| POST   | `/api/products`      | cadastra                           |
+| PUT    | `/api/products/{id}` | edita                              |
+| PUT    | `/api/products/{id}/image` | envia foto (multipart, até 2 MB) |
+| DELETE | `/api/products/{id}/image` | remove a imagem              |
+| GET    | `/api/products/{id}/image` | foto enviada (pública)       |
+
+## Imagens dos produtos
+
+- **Pelo Google (manual):** os botões "Google: nome" e "Google: código" abrem o Google Imagens.
+  Copie a imagem e cole no campo do cadastro (Ctrl+V); ela é salva no banco.
+- **Foto própria:** botão "Enviar foto" (câmera ou galeria).
+
+## Mudanças no banco
+
+`scripts/init_db.py` cria tabelas novas e aplica a lista `MIGRATIONS`. Rode de novo
+sempre que o modelo mudar (local e no banco da Vercel); é seguro repetir.
 
 ## Deploy na Vercel
 

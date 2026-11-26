@@ -1,0 +1,47 @@
+/* ---------- recibo: tela (prévia) ---------- */
+.receipt-page { min-height: 100vh; background: #e5e7eb; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.receipt-toolbar {
+  width: 100%; max-width: 720px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+}
+.receipt-toolbar p { flex-basis: 100%; margin: 0; }
+.receipt {
+  background: #fff; color: #000; box-shadow: 0 2px 12px rgba(0, 0, 0, .15);
+  font-family: "DejaVu Sans", Arial, Helvetica, sans-serif; line-height: 1.35;
+}
+.receipt hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+.r-head { text-align: center; }
+.r-logo { display: block; margin: 0 auto 4px; max-width: 70%; max-height: 28mm; object-fit: contain; }
+.r-store { font-weight: 700; font-size: 1.25em; }
+.r-title { text-align: center; font-weight: 700; margin: 2px 0 4px; }
+.r-line { display: flex; justify-content: space-between; gap: 8px; }
+.r-line > span:last-child { text-align: right; overflow-wrap: anywhere; }
+.r-items { width: 100%; border-collapse: collapse; font-size: inherit; }
+.r-items th { text-align: left; font-weight: 700; padding: 0 0 2px; border-bottom: 1px solid #000; }
+.r-items td { padding: 3px 0; vertical-align: top; border-bottom: 0; }
+.r-name { font-weight: 600; overflow-wrap: anywhere; }
+.r-num { text-align: right !important; white-space: nowrap; padding-left: 6px !important; }
+.r-total { font-weight: 800; font-size: 1.3em; margin: 2px 0; }
+.r-footer { text-align: center; font-weight: 600; }
+.r-note { text-align: center; font-size: .85em; margin-top: 4px; }
+
+/* larguras: área útil típica da bobina (80mm → 72mm, 58mm → 48mm) */
+.receipt.fmt-80 { width: 72mm; padding: 3mm 0; font-size: 12px; }
+.receipt.fmt-58 { width: 48mm; padding: 2mm 0; font-size: 10.5px; }
+.receipt.fmt-a4 { width: 120mm; padding: 10mm 12mm; font-size: 14px; }
+.receipt.fmt-80, .receipt.fmt-58 { box-sizing: content-box; padding-left: 3mm; padding-right: 3mm; }
+
+/* dentro do iframe de impressão não há prévia */
+.receipt-page.embed { background: #fff; padding: 0; }
+.receipt-page.embed .receipt { box-shadow: none; }
+
+/* ---------- impressão ---------- */
+@media print {
+  html, body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .receipt-page { display: block; padding: 0; min-height: 0; background: #fff; }
+  .receipt { box-shadow: none; margin: 0; }
+  .receipt.fmt-a4 { margin: 0 auto; padding: 0; }
+  .r-items tr { break-inside: avoid; }
+}
+.r-items th { color: #000; font-size: inherit; }
