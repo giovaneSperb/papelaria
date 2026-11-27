@@ -62,6 +62,36 @@ sempre que o modelo mudar (local e no banco da Vercel); é seguro repetir.
    ```
 5. Deploy. O `vercel.json` builda o front e manda `/api/*` para o FastAPI.
 
+## Deploy no Railway
+
+O `Dockerfile` publica o frontend React e o FastAPI no mesmo serviço, e o
+PostgreSQL fica em um serviço separado do Railway. As chamadas do frontend usam
+`/api` no mesmo domínio.
+
+1. Crie um projeto no Railway e adicione um serviço PostgreSQL pelo botão **New**.
+   Confirme que o PostgreSQL tem um volume persistente configurado.
+2. Adicione o repositório GitHub como outro serviço do projeto. O Railway detecta
+   o `Dockerfile` da raiz.
+3. No serviço da aplicação, configure as variáveis:
+   - `DATABASE_URL`: referência à variável `DATABASE_URL` do serviço PostgreSQL
+     (por exemplo `${{Postgres.DATABASE_URL}}`, se o serviço se chamar `Postgres`).
+   - `JWT_SECRET`: segredo aleatório forte, diferente das credenciais do banco.
+4. Nas configurações do serviço, use `/api/health` como health check. Gere um
+   domínio público e aguarde o deploy ficar saudável.
+5. Inicialize o schema e crie o primeiro administrador apontando o script para
+   a `DATABASE_URL` de produção:
+
+   ```bash
+   railway run --service app python -m scripts.init_db \
+     --email voce@exemplo.com --name "Seu Nome" --password "SENHA_FORTE"
+   ```
+
+   Ajuste `app` para o nome do serviço da aplicação. Não coloque a senha em um
+   repositório nem em arquivo versionado.
+
+O serviço e o banco consomem recursos continuamente. Configure um limite de
+gastos no Railway e mantenha backups do PostgreSQL fora da conta/serviço.
+
 ## Usuários e perfis
 
 Não existe autocadastro. Perfis:
