@@ -26,8 +26,6 @@ export function AuthProvider({ children }) {
   const login = async (email, password) =>
     handleAuth(await api("/auth/login", { method: "POST", body: { email, password } }));
 
-  const register = async (name, email, password) =>
-    handleAuth(await api("/auth/register", { method: "POST", body: { name, email, password } }));
 
   const logout = () => {
     tokenStore.clear();
@@ -35,7 +33,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin: user?.role === "admin" }}>
       {children}
     </AuthContext.Provider>
   );

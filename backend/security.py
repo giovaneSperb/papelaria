@@ -49,6 +49,12 @@ def get_current_user(
     except (jwt.PyJWTError, KeyError, ValueError):
         raise unauthorized
     user = db.get(User, user_id)
-    if user is None or not user.is_active:
+    if user is None or not user.is_active:  # desativado perde o acesso na hora
         raise unauthorized
+    return user
+
+
+def require_admin(user: User = Depends(get_current_user)) -> User:
+    if user.role != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Somente administradores")
     return user

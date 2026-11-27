@@ -7,10 +7,38 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_vali
 from backend.cpf import is_valid_cpf, only_digits
 
 
+def _clean_name(v: str) -> str:
+    v = " ".join(v.split())
+    if not v:
+        raise ValueError("Nome obrigatório")
+    return v
+
+
+Role = Literal["admin", "operador"]
+
+
 class UserCreate(BaseModel):
     name: str = Field(min_length=2, max_length=120)
     email: EmailStr
     password: str = Field(min_length=6, max_length=72)  # bcrypt usa só 72 bytes
+    role: Role = "operador"
+
+    @field_validator("name")
+    @classmethod
+    def clean(cls, v: str) -> str:
+        return _clean_name(v)
+
+
+class UserUpdate(BaseModel):
+    name: str | None = Field(None, min_length=2, max_length=120)
+    role: Role | None = None
+    is_active: bool | None = None
+    password: str | None = Field(None, min_length=6, max_length=72)
+
+    @field_validator("name")
+    @classmethod
+    def clean(cls, v: str | None) -> str | None:
+        return None if v is None else _clean_name(v)
 
 
 class LoginRequest(BaseModel):
@@ -24,6 +52,8 @@ class UserOut(BaseModel):
     id: int
     name: str
     email: EmailStr
+    role: str
+    is_active: bool
     created_at: datetime
 
 
@@ -74,12 +104,6 @@ class ProductOut(BaseModel):
     image: str | None  # URL pronta para usar em <img>
     updated_at: datetime
 
-
-def _clean_name(v: str) -> str:
-    v = " ".join(v.split())
-    if not v:
-        raise ValueError("Nome obrigatório")
-    return v
 
 
 # ---------- categorias de cliente / formas de pagamento

@@ -1,4 +1,5 @@
 """Dados da papelaria (cabeçalho do recibo) e logotipo."""
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, undefer
@@ -7,7 +8,7 @@ from backend.database import get_db
 from backend.images import MAX_IMAGE_BYTES, detect_mime
 from backend.models import StoreSettings
 from backend.schemas import StoreIn, StoreOut
-from backend.security import get_current_user
+from backend.security import get_current_user, require_admin
 
 router = APIRouter(prefix="/api/store", tags=["papelaria"], dependencies=[Depends(get_current_user)])
 public_router = APIRouter(prefix="/api/store", tags=["papelaria"])
@@ -36,7 +37,7 @@ def get_store(db: Session = Depends(get_db)):
     return to_out(_get(db))
 
 
-@router.put("", response_model=StoreOut)
+@router.put("", response_model=StoreOut, dependencies=[Depends(require_admin)])
 def update_store(data: StoreIn, db: Session = Depends(get_db)):
     store = _get(db)
     for field, value in data.model_dump().items():
@@ -46,7 +47,7 @@ def update_store(data: StoreIn, db: Session = Depends(get_db)):
     return to_out(store)
 
 
-@router.put("/logo", response_model=StoreOut)
+@router.put("/logo", response_model=StoreOut, dependencies=[Depends(require_admin)])
 async def upload_logo(file: UploadFile = File(...), db: Session = Depends(get_db)):
     data = await file.read(MAX_IMAGE_BYTES + 1)
     if len(data) > MAX_IMAGE_BYTES:
@@ -62,7 +63,7 @@ async def upload_logo(file: UploadFile = File(...), db: Session = Depends(get_db
     return to_out(store)
 
 
-@router.delete("/logo", response_model=StoreOut)
+@router.delete("/logo", response_model=StoreOut, dependencies=[Depends(require_admin)])
 def delete_logo(db: Session = Depends(get_db)):
     store = _get(db)
     store.logo_data = None
@@ -70,6 +71,21 @@ def delete_logo(db: Session = Depends(get_db)):
     db.commit()
     db.refresh(store)
     return to_out(store)
+
+
+class BrandOut(BaseModel):
+    name: str
+    logo: str | None
+
+
+@public_router.get("/brand", response_model=BrandOut)
+def get_brand(db: Session = Depends(get_db)):
+    """Público (tela de login): só o nome e o logotipo, nada além disso."""
+    s = db.get(StoreSettings, 1)
+    if s is None:
+        return BrandOut(name="Papelaria", logo=None)
+    out = to_out(s)
+    return BrandOut(name=out.name, logo=out.logo)
 
 
 @public_router.get("/logo", include_in_schema=False)

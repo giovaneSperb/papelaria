@@ -4,7 +4,7 @@ import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const [store, setStore] = useState(null);
 
   useEffect(() => {
@@ -26,11 +26,15 @@ export default function Layout() {
             <NavLink to="/venda">Venda</NavLink>
             <NavLink to="/estoque">Estoque</NavLink>
             <NavLink to="/clientes">Clientes</NavLink>
-            <NavLink to="/configuracoes">Configurações</NavLink>
+            <NavLink to="/caixa">Caixa</NavLink>
+            {isAdmin && <NavLink to="/usuarios">Usuários</NavLink>}
+            {isAdmin && <NavLink to="/configuracoes">Configurações</NavLink>}
           </nav>
         </div>
         <div>
-          <span className="muted hide-sm">{user.name}</span>
+          <span className="muted hide-sm">
+            {user.name}{isAdmin && <span className="tag tag-gap">admin</span>}
+          </span>
           <button className="link" onClick={logout}>Sair</button>
         </div>
       </header>

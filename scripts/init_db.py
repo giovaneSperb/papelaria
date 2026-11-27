@@ -26,6 +26,8 @@ MIGRATIONS = [
     "ALTER TABLE customers ADD COLUMN IF NOT EXISTS credit_limit NUMERIC(12, 2)",
     "ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS institution VARCHAR(200) DEFAULT 'Colégio Luterano da Paz'",
     "ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS city VARCHAR(120)",
+    # perfis de usuário
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'operador'",
 ]
 
 
@@ -63,10 +65,14 @@ def seed() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--email")
+    parser = argparse.ArgumentParser(
+        description="Cria/atualiza as tabelas. Com --email (+ --password se for novo), cria ou promove um ADMINISTRADOR."
+    )
+    parser.add_argument("--email", help="e-mail do administrador")
     parser.add_argument("--name", default="Administrador")
-    parser.add_argument("--password")
+    parser.add_argument("--password", help="senha (mín. 6 caracteres)")
+    parser.add_argument("--reset-password", action="store_true",
+                        help="se o e-mail já existir, troca a senha dele")
     args = parser.parse_args()
 
     Base.metadata.create_all(engine)
@@ -76,15 +82,36 @@ def main() -> None:
     seed()
     print("Tabelas criadas/verificadas.")
 
-    if args.email and args.password:
+    if args.password and not args.email:
+        parser.error("--password precisa de --email")
+    if args.password is not None and len(args.password) < 6:
+        parser.error("a senha precisa ter pelo menos 6 caracteres")
+    if args.email:
         with SessionLocal() as db:
-            email = args.email.lower()
-            if db.scalar(select(models.User).where(models.User.email == email)):
-                print(f"Usuário {email} já existe.")
-                return
-            db.add(models.User(name=args.name, email=email, password_hash=hash_password(args.password)))
+            email = args.email.lower().strip()
+            user = db.scalar(select(models.User).where(models.User.email == email))
+            if user is None and not args.password:
+                parser.error(f"{email} não existe: informe --password para criar o administrador")
+            if user is None:
+                db.add(models.User(name=args.name, email=email, role="admin", is_active=True,
+                                   password_hash=hash_password(args.password)))
+                print(f"Administrador {email} criado.")
+            else:
+                user.role = "admin"
+                user.is_active = True
+                msg = f"Usuário {email} já existia: agora é administrador e está ativo"
+                if args.reset_password and args.password:
+                    user.password_hash = hash_password(args.password)
+                    msg += " (senha trocada)"
+                else:
+                    msg += " (senha mantida; use --reset-password para trocar)"
+                print(msg + ".")
             db.commit()
-            print(f"Usuário {email} criado.")
+
+    with SessionLocal() as db:
+        if not db.scalar(select(models.User).where(models.User.role == "admin", models.User.is_active)):
+            print("ATENÇÃO: nenhum administrador ativo. Crie um com:\n"
+                  "  python -m scripts.init_db --email voce@exemplo.com --name \"Seu Nome\" --password SUA_SENHA")
 
 
 if __name__ == "__main__":

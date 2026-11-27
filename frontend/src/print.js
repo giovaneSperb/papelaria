@@ -2,6 +2,7 @@
 // janela de impressão quando ela avisar que está pronta ("print-ready").
 export const printReceipt = (saleId) => printPage(`/recibo/${saleId}?embed=1`);
 export const printTerm = (saleId) => printPage(`/termo/${saleId}?embed=1`);
+export const printClosing = (day) => printPage(`/fechamento/impressao?data=${day}&embed=1`);
 
 function printPage(url) {
   return new Promise((resolve) => {
@@ -36,6 +37,8 @@ function printPage(url) {
 export const openReceipt = (saleId, format) =>
   window.open(`/recibo/${saleId}${format ? `?formato=${format}` : ""}`, "_blank", "noopener");
 export const openTerm = (saleId) => window.open(`/termo/${saleId}`, "_blank", "noopener");
+export const openClosing = (day, format) =>
+  window.open(`/fechamento/impressao?data=${day}${format ? `&formato=${format}` : ""}`, "_blank", "noopener");
 
 // Preferência deste computador: imprimir sozinho ao finalizar a venda
 const AUTO_KEY = "papelaria_auto_print";

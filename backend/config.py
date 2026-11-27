@@ -10,7 +10,6 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_algorithm: str = "HS256"
     jwt_expires_minutes: int = 480
-    allow_signup: bool = True
 
     @property
     def sqlalchemy_url(self) -> str:

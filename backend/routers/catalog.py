@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import CustomerCategory, PaymentMethod
 from backend.schemas import CategoryOut, CategoryUpdate, NamedIn, PaymentMethodOut, PaymentMethodUpdate
-from backend.security import get_current_user
+from backend.security import get_current_user, require_admin
 
 router = APIRouter(prefix="/api", tags=["cadastros"], dependencies=[Depends(get_current_user)])
 
@@ -25,7 +25,7 @@ def list_categories(db: Session = Depends(get_db)):
     return db.scalars(select(CustomerCategory).order_by(CustomerCategory.name)).all()
 
 
-@router.post("/customer-categories", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
+@router.post("/customer-categories", response_model=CategoryOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
 def create_category(data: NamedIn, db: Session = Depends(get_db)):
     if _name_taken(db, CustomerCategory, data.name):
         raise HTTPException(status.HTTP_409_CONFLICT, "Já existe uma categoria com esse nome")
@@ -36,7 +36,7 @@ def create_category(data: NamedIn, db: Session = Depends(get_db)):
     return cat
 
 
-@router.patch("/customer-categories/{cat_id}", response_model=CategoryOut)
+@router.patch("/customer-categories/{cat_id}", response_model=CategoryOut, dependencies=[Depends(require_admin)])
 def update_category(cat_id: int, data: CategoryUpdate, db: Session = Depends(get_db)):
     cat = db.get(CustomerCategory, cat_id)
     if cat is None:
@@ -59,7 +59,7 @@ def list_payment_methods(
     return db.scalars(stmt).all()
 
 
-@router.post("/payment-methods", response_model=PaymentMethodOut, status_code=status.HTTP_201_CREATED)
+@router.post("/payment-methods", response_model=PaymentMethodOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
 def create_payment_method(data: NamedIn, db: Session = Depends(get_db)):
     if _name_taken(db, PaymentMethod, data.name):
         raise HTTPException(status.HTTP_409_CONFLICT, "Já existe uma forma de pagamento com esse nome")
@@ -70,7 +70,7 @@ def create_payment_method(data: NamedIn, db: Session = Depends(get_db)):
     return pm
 
 
-@router.patch("/payment-methods/{pm_id}", response_model=PaymentMethodOut)
+@router.patch("/payment-methods/{pm_id}", response_model=PaymentMethodOut, dependencies=[Depends(require_admin)])
 def update_payment_method(pm_id: int, data: PaymentMethodUpdate, db: Session = Depends(get_db)):
     pm = db.get(PaymentMethod, pm_id)
     if pm is None:

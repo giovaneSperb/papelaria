@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import Brand from "../components/Brand.jsx";
 
 export default function Login() {
   const { login } = useAuth();
@@ -27,8 +28,7 @@ export default function Login() {
   return (
     <div className="center">
       <form className="card" onSubmit={onSubmit}>
-        <h1>Papelaria</h1>
-        <p className="muted">Entre com sua conta</p>
+        <Brand subtitle="Entre com sua conta" />
         <label>
           E-mail
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
@@ -39,9 +39,7 @@ export default function Login() {
         </label>
         {error && <div className="error">{error}</div>}
         <button disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
-        <p className="muted small">
-          Não tem conta? <Link to="/cadastro">Cadastre-se</Link>
-        </p>
+        <p className="muted small">Não tem acesso? Peça a um administrador.</p>
       </form>
     </div>
   );
